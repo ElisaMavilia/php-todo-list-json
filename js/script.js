@@ -1,22 +1,28 @@
-import {todo} from './data.js';
-
 const {createApp} = Vue;
 
 createApp({
+
     data(){
         return {
-            todo: todo,
-            itemText: ""
+            todo: [],
+            itemText: "",
+            apiUrl: "server.php",
         }
     },
     methods:{
+        getData(){
+            axios.get(this.apiUrl).then((res)=>{
+                this.todo = res.data;
+                console.log(res.data);
+            });
+        },
         toggleDone(id){
             const item = this.todo.find((el)=>{
             return el.id === id;
             })
             console.log(item);
             if(item){
-                item.done = !item.done;
+                item.done = !item.done; 
             }
         },
 
@@ -30,25 +36,38 @@ createApp({
         },
 
         addTodo(){
-            let newObj = {
-                id: null,
-                text: this.itemText,
+            const list = {...this.newObj}
+            const newObj = {
+                id: "",
+                text: "",
                 done: false
             }
-            let nextId = 0;
+            list.id = 0;
+           
             this.todo.forEach((el)=>{
-                if (nextId < el.id){
-                    nextId = el.id;
+                if (list.id < el.id){
+                    list.id = el.id;
                 }
             });
-            newObj.id = nextId + 1;
+            newObj.id = list.id + 1;
             this.todo.unshift(newObj);
-            this.itemText = '';
-            console.log(this.todo);
+            this.id = newObj.id;
+            this.text = newObj.text;
+            this.done = true;
+          
+            const data = new FormData();
+            for (let key in list) {
+                data.append(key, list[key]);
+            }
+            axios.post(this.apiUrl, data).then((res)=>{
+                console.log(res.data);
+                this.list = res.data;
+            });
         }
     },
     mounted(){
-        console.log(this.todo);
+        /* console.log(this.todoList); */
+        this.getData();
     }
 
 }).mount('#app');
